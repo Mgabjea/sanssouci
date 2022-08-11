@@ -93,6 +93,39 @@ gen.mu.leaves <- function(m, K1, d, grouped, setting, barmu, leaf_list) {
     return(mu)
 }
 
+gen.mu.leaves2 <- function(m, K1, d, grouped, setting, barmu, leaf_list) {
+  mu <- numeric(m)
+  K <- length(leaf_list)
+  dl <- seq(d/10, d, (9*d/10)/(K1-1))
+  #dl <-rep(d,K1) # test line similar to gen.mu.leaves
+  barmul <-  seq(barmu/100, barmu, (99*barmu/100)/(K1-1)) 
+  #barmul <- rep(barmu,K1) #test line similar to gen.mu.leaves
+  if (K1 > K) 
+    stop("K1>K,\nwe don't have so many leaves")
+  active_leaves <- numeric(K1)
+  if (grouped) {
+    active_leaves <- seq(1, K1) # + sample(seq(0, K - K1), 1)
+  } else {
+    active_leaves <- sample(seq(1, K), K1)
+  }
+  for (i in active_leaves) {
+    length_leaf <- length(leaf_list[[i]])
+    m1loc <- floor(length_leaf * dl[K1-i+1])
+    signal <- sample(length_leaf, m1loc)
+    mu[leaf_list[[i]][signal]] <- switch(setting, const = {
+      barmul[i]
+    }, rgauss = {
+      rnorm(m1loc, mean = barmul[i], sd = sqrt(barmul[i]))
+    }, gauss = {
+      gauss_bloc(barmul[i], length_leaf)[signal]
+      # why did I make this choice and not just gauss_bloc(barmu, m1loc) ? 
+      # Strange, because in the current way the signal doesn't have mean barmu but lesser mean as soon as d<1
+    }, poisson = {
+      rpois(m1loc, 999 * barmu/1000) + barmu/1000
+    })
+  }
+  return(mu)
+}
 #' Generate one-sided p-values associated to a given signal with equi-correlated noise
 #' 
 #' @param m An integer value, the number of hypotheses

@@ -1,6 +1,8 @@
 library("future")
+source("inst/DBNR/envelopes-hybrid/hybrid_simu.hulk.R")
+source('~/Documents/stage_Stats/code/sanssouci/inst/DBNR/envelopes-hybrid/hybrid_00_setup.R')
 
-plan(multisession, workers = 100) # multiprocess est déprécié
+# plan(multisession, workers = 100) # multiprocess est déprécié
 
 resPath <- "resData/DBNR/confidenceEnvelopes"
 resPath <- file.path(resPath, Sys.Date())
@@ -29,8 +31,8 @@ for (cc in 1:nb) {
                   "grouped=", conf[["grouped"]], "_",
                   "setting=", conf[["setting"]], sep = "")
     filename <- sprintf("conf-env_%s.rds", stag)
-    # print(filename)
-    dummy %<-% {
+    print(filename)
+    
         sdatList <- list()
         for (rr in 1:repl) {
             res <- simu.hulk(m = conf[["m"]], 
@@ -40,17 +42,20 @@ for (cc in 1:nb) {
                          barmu = conf[["barmu"]],
                          grouped = conf[["grouped"]], 
                          setting = conf[["setting"]],
-                         methods = c("tree", "part", "Simes", "Oracle"),
+                         # methods_ = c("tree", "part", "Simes", "Oracle", "hyb1", "hyb2", "hyb3"),
+                         # methods_ = c("hyb1", "part", "Simes", "tree"),
+                         methods_ = c("tree", "Oracle", "hyb2", "hyb3"),
                          alpha = alphas, verbose = FALSE)
             sdat <- Reduce(rbind, res)
             sdat$replication <- rr
             sdatList[[rr]] <- sdat
-        }
+        
         dat <- Reduce(rbind, sdatList)
         rownames(conf) <- NULL
         dat <- cbind(dat, conf)
         pathname <- file.path(resPath, filename)
         saveRDS(dat, pathname)
-        ## dat <- readRDS(pathname)
+        dat <- readRDS(pathname)
     }
 }
+

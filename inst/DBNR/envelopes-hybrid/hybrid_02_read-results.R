@@ -1,5 +1,5 @@
 resPath <- "resData/DBNR/confidenceEnvelopes"
-resPath <- file.path(resPath, "2018-06-06")
+resPath <- file.path(resPath, Sys.Date())
 resPath <- R.utils::Arguments$getWritablePath(resPath)
 
 ## confs <- subset(configs, grouped & setting == "const")
